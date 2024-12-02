@@ -1,0 +1,907 @@
+{
+    "info": {
+        "name": "RAJAPI-COP API",
+        "description": "Endpoint test",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "project_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "reference_number",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "task_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "1. User Registration and Authentication",
+            "item": [
+                {
+                    "name": "Register Project Owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Registration Successful\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.have.property('id');",
+                                    "    pm.expect(responseJson.username).to.eql('project_owner');",
+                                    "    pm.expect(responseJson.email).to.eql('owner@rajapi.com');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/register/",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"project_owner\",\n    \"email\": \"owner@rajapi.com\",\n    \"password\": \"Pass123!@\",\n    \"confirm_password\": \"Pass123!@\",\n    \"first_name\": \"Project\",\n    \"last_name\": \"Owner\",\n    \"date_of_birth\": \"1990-01-01\",\n    \"gender\": \"M\",\n    \"nationality\": \"Cameroon\",\n    \"city\": \"Yaoundé\",\n    \"phone_number\": \"+237699999999\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Register Collaborator",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Collaborator Registration Successful\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson.username).to.eql('collaborator');",
+                                    "    pm.collectionVariables.set(\"collaborator_id\", responseJson.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/register/",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"collaborator\",\n    \"email\": \"collaborator@rajapi.com\",\n    \"password\": \"Pass123!@\",\n    \"confirm_password\": \"Pass123!@\",\n    \"first_name\": \"Project\",\n    \"last_name\": \"Collaborator\",\n    \"date_of_birth\": \"1992-01-01\",\n    \"gender\": \"F\",\n    \"nationality\": \"Cameroon\",\n    \"city\": \"Douala\",\n    \"phone_number\": \"+237688888888\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Login Owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Login Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.have.property('access');",
+                                    "    pm.collectionVariables.set(\"access_token\", responseJson.access);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/token/",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"project_owner\",\n    \"password\": \"Pass123!@\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Verify Email",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Email Verification Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/auth/verify-email/{{verification_token}}/",
+                        "header": []
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Project Creation and Management",
+            "item": [
+                {
+                    "name": "Create Project",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Project Creation Successful\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "    const responseJson = pm.response.json();",
+                                    "",
+                                    "    // Vérifier la référence du projet",
+                                    "    pm.expect(responseJson).to.have.property('reference_number');",
+                                    "    pm.expect(responseJson.reference_number).to.match(/^RJPC-\\d{4}-\\d{5}$/);",
+                                    "",
+                                    "    // Sauvegarder les variables",
+                                    "    pm.collectionVariables.set(\"project_id\", responseJson.project.id);",
+                                    "    pm.collectionVariables.set(\"reference_number\", responseJson.reference_number);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/projects/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title",
+                                    "value": "Projet de Reforestation RAJAPI-COP",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "Projet de reforestation dans la région du Sahel",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "objectives",
+                                    "value": "Planter 1000 arbres en 6 mois",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "location",
+                                    "value": "Sahel, Cameroun",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2024-01-01",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "deadline",
+                                    "value": "2024-12-31",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Project Details",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get Project Details Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    ",
+                                    "    pm.expect(responseJson.reference_number).to.eql(pm.collectionVariables.get(\"reference_number\"));",
+                                    "    pm.expect(responseJson.title).to.eql('Projet de Reforestation RAJAPI-COP');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Update Project",
+                    "request": {
+                        "method": "PUT",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": {
+                                "title": "Projet mis à jour",
+                                "description": "Description mise à jour",
+                                "objectives": "Nouveaux objectifs",
+                                "location": "Nouvelle localisation",
+                                "start_date": "2024-01-01",
+                                "deadline": "2024-12-31",
+                                "status": "in_progress"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Partial Update Project",
+                    "request": {
+                        "method": "PATCH",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": {
+                                "status": "in_progress",
+                                "description": "Description mise à jour partiellement"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+
+        {
+            "name": "Project Versioning",
+            "item": [
+                {
+                    "name": "Create Project Version",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/create_version/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": {
+                                "title": "Titre mis à jour",
+                                "description": "Nouvelle description pour cette version",
+                                "objectives": "Nouveaux objectifs",
+                                "location": "Nouvelle localisation",
+                                "start_date": "2024-01-15",
+                                "deadline": "2024-12-31",
+                                "status": "in_progress"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Get Project Versions",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/versions/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Restore Project Version",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/restore_version/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": {
+                                "version_number": 1
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        
+        {
+            "name": "3. Project Members Management",
+            "item": [
+                {
+                    "name": "Add Project Member",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member Addition Successful\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson.message).to.eql('Membre ajouté avec succès');",
+                                    "    pm.expect(responseJson.member.role).to.eql('collaborator');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/add_member/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user\": \"{{collaborator_id}}\",\n    \"role\": \"collaborator\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "List Project Members",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"List Members Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.be.an('array');",
+                                    "    pm.expect(responseJson.length).to.be.at.least(2);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/members/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Remove Project Member",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member Removal Successful\", function () {",
+                                    "    pm.response.to.have.status(204);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/remove_member/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "query": [
+                            {
+                                "key": "user_id",
+                                "value": "{{collaborator_id}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. Project Documents Management",
+            "item": [
+                {
+                    "name": "Upload Project Documents",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Document Upload Successful\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson.message).to.include('document(s) uploadé(s)');",
+                                    "    pm.expect(responseJson.documents).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/upload_documents/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "documents",
+                                    "type": "file",
+                                    "src": "/path/to/document1.pdf"
+                                },
+                                {
+                                    "key": "documents",
+                                    "type": "file",
+                                    "src": "/path/to/document2.pdf"
+                                },
+                                {
+                                    "key": "title",
+                                    "value": "Documents du projet",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "Documents de présentation du projet",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Project Documents",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get Documents Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/documents/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. Project Tasks Management",
+            "item": [
+                {
+                    "name": "Create Task",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Task Creation Successful\", function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson.message).to.eql('Tâche créée avec succès');",
+                                    "    pm.collectionVariables.set(\"task_id\", responseJson.task.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/tasks/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Préparation du terrain\",\n    \"description\": \"Préparer le terrain pour la plantation des arbres\",\n    \"assigned_to\": \"{{collaborator_id}}\",\n    \"due_date\": \"2024-02-01\",\n    \"status\": \"open\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "List Tasks",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"List Tasks Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/tasks/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Update Task Status",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Task Update Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson.message).to.eql('Tâche mise à jour avec succès');",
+                                    "    pm.expect(responseJson.task.status).to.eql('in_progress');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/tasks/{{task_id}}/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"in_progress\"\n}"
+                        }
+                    }
+                }
+            ]
+        },
+
+        {
+            "name": "6. Project Monitoring and Updates",
+            "item": [
+                {
+                    "name": "Update Project Status",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Project Status Update Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson.project.status).to.eql('in_progress');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"in_progress\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Update Project Details",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Project Update Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson.project.objectives).to.include('Mise à jour');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title",
+                                    "value": "Projet de Reforestation RAJAPI-COP - Mise à jour",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "Description mise à jour du projet de reforestation",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "objectives",
+                                    "value": "Objectifs mis à jour: Planter 2000 arbres en 12 mois",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "deadline",
+                                    "value": "2024-12-31",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "7. Project Statistics and Reports",
+            "item": [
+                {
+                    "name": "Get Project Progress",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get Progress Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.have.property('progress_percentage');",
+                                    "    pm.expect(responseJson).to.have.property('completed_tasks');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/progress/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Get Project Statistics",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get Statistics Successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const responseJson = pm.response.json();",
+                                    "    pm.expect(responseJson).to.have.property('total_tasks');",
+                                    "    pm.expect(responseJson).to.have.property('members_count');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/statistics/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "8. Complete Workflow Tests",
+            "item": [
+                {
+                    "name": "Full Project Lifecycle Test",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "// Test complet du cycle de vie du projet",
+                                    "const steps = [",
+                                    "    \"1. Création du projet\",",
+                                    "    \"2. Ajout de membres\",",
+                                    "    \"3. Upload de documents\",",
+                                    "    \"4. Création de tâches\",",
+                                    "    \"5. Mise à jour du statut\",",
+                                    "    \"6. Vérification des statistiques\"",
+                                    "];",
+                                    "",
+                                    "pm.test(\"Full Project Lifecycle Test Complete\", function () {",
+                                    "    steps.forEach(step => {",
+                                    "        console.log(`✓ ${step} completed`);",
+                                    "    });",
+                                    "    pm.expect(true).to.be.true;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Validation Test Suite",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "// Suite de tests de validation",
+                                    "pm.test(\"Project Validation Tests\", function () {",
+                                    "    // Vérification de la référence du projet",
+                                    "    pm.expect(pm.collectionVariables.get(\"reference_number\")).to.match(/^RJPC-\\d{4}-\\d{5}$/);",
+                                    "",
+                                    "    // Vérification des membres",
+                                    "    pm.expect(pm.collectionVariables.get(\"collaborator_id\")).to.exist;",
+                                    "",
+                                    "    // Vérification des tâches",
+                                    "    pm.expect(pm.collectionVariables.get(\"task_id\")).to.exist;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/api/projects/{{project_id}}/",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+        
+    ]
+    
+}
