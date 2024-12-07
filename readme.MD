@@ -1,121 +1,326 @@
-# User Authentication and Profile Management API
+# Project Management API Documentation
 
-## Register User
+## Overview
+This API provides a comprehensive set of endpoints for managing projects, tasks, documents, and team collaboration features including forums and discussions.
 
-<http://127.0.0.1:8000/auth/register/>
+## Authentication
+All endpoints require authentication using JWT tokens. Include the token in the Authorization header:
+```
+Authorization: Bearer <your_token>
+```
 
-This endpoint is used to register a new user.
+## Projects Endpoints
 
-### Request Body
+### Project Management
 
-- first_name (text): The first name of the user.
+#### List Projects
+```http
+GET /api/projects/
+```
+- Supports filtering by: status, location
+- Supports search on: title, description, objectives, reference_number
+- Supports ordering by: created_at, deadline
 
-- last_name (text): The last name of the user.
-
-- username (text): The username chosen by the user.
-
-- email (text): The email address of the user.
-
-- password (text): The chosen password for the account.
-
-- confirm_password (text): Confirmation of the chosen password.
-
-- role (text): The role of the user.
-
-- phone_number (text): The phone number of the user.
-
-- newsletter_subscription (text): Indicates if the user has subscribed to the newsletter.
-
-### Response
-
-``` json
+Response example:
+```json
 {
-    "message": "User registered successfully!"
+  "count": 1,
+  "results": [{
+    "id": 1,
+    "reference_number": "RJPC-2024-12345",
+    "title": "Project Example",
+    "status": "in_progress",
+    "start_date": "2024-01-01",
+    "deadline": "2024-12-31",
+    "location": "Paris",
+    "created_at": "2024-01-01T00:00:00Z",
+    "owner_details": {
+      "id": 1,
+      "username": "john.doe",
+      "email": "john.doe@example.com"
+    },
+    "version_count": 5,
+    "document_count": 3
+  }]
 }
+```
 
- ```
-
-The response of this request is a JSON schema defining the structure of the response data.
-
-## User Login
-
-<http://127.0.0.1:8000/auth/token/>
-
-The endpoint `http://127.0.0.1:8000/auth/token/` is a POST request used for obtaining authentication tokens.
-
-### Request Body
-
-The request body should be of type form-data and include the following parameters:
-
-- `username` (type: text) : The username of the user.
-
-- `password` (type: text) : The password of the user.
-
-### Response
-
-The response will have a status code of 200 and a content type of `application/json`. The response body will be in the following JSON schema:
-
-``` json
+#### Create Project
+```http
+POST /api/projects/
+```
+Request body:
+```json
 {
-    "type": "object",
-    "properties": {
-        "refresh": {
-            "type": "string"
-        },
-        "access": {
-            "type": "string"
-        }
-    }
+  "title": "New Project",
+  "description": "Project description",
+  "objectives": "Project objectives",
+  "deadline": "2024-12-31",
+  "start_date": "2024-01-01",
+  "location": "Paris"
 }
+```
 
- ```
+#### Get Project Details
+```http
+GET /api/projects/{id}/
+```
 
-## Password Reset
+#### Update Project
+```http
+PUT /api/projects/{id}/
+PATCH /api/projects/{id}/
+```
 
-<http://127.0.0.1:8000/auth/password-reset/>
+#### Delete Project
+```http
+DELETE /api/projects/{id}/
+```
 
-This endpoint is used to initiate a password reset process by sending a request with the user's email.
+### Project Members
 
-### Request Body
-
-- email (text): The email address of the user for whom the password reset is requested.
-
-### Response
-
-The response of this request is a JSON schema that includes the properties and data types of the response object.
-
-``` json
+#### Add Member
+```http
+POST /api/projects/{id}/add_member/
+```
+Request body:
+```json
 {
-    "detail": "Password reset email sent"
+  "user": "user@example.com",
+  "role": "collaborator"
 }
+```
 
- ```
+#### Remove Member
+```http
+DELETE /api/projects/{id}/remove_member/?user_id=1
+```
 
-http://127.0.0.1:8000/auth/reset-password/`uidb64`/`token`
+### Project Versions
 
-### Reset Password
+#### List Versions
+```http
+GET /api/projects/{id}/versions/
+```
+Lists all changes made to the project with their timestamps and details.
 
-This endpoint is used to reset the password.
-
-#### Request Body
-
-- new_password (text) - The new password for the user.
-
-- confirm_password (text) - The confirmation of the new password.
-
-#### Response
-
-The response is in JSON format and has the following schema:
-
-``` json
+#### Restore Version
+```http
+POST /api/projects/{id}/restore_version/
+```
+Request body:
+```json
 {
-  "type": "object",
-  "properties": {
-    "detail": {
-      "type": "string"
-    }
-  },
-  "required": ["detail"]
+  "version": 1
 }
+```
 
- ```
+### Documents
+
+#### List Project Documents
+```http
+GET /api/projects/{project_id}/documents/
+```
+
+#### Upload Document
+```http
+POST /api/projects/{project_id}/upload_documents/
+```
+Multipart form data:
+- documents: File(s)
+- title: String (optional)
+- description: String (optional)
+- document_type: String (pdf|image|video|other)
+
+#### Update Document
+```http
+PUT /api/projects/{project_id}/documents/{id}/
+```
+
+#### Delete Document
+```http
+DELETE /api/projects/{project_id}/documents/{id}/
+```
+
+## Tasks Endpoints
+
+### List Project Tasks
+```http
+GET /api/projects/{project_id}/tasks/
+```
+- Supports filtering by: status, assigned_to
+- Supports ordering by: due_date, created_at
+
+### Create Task
+```http
+POST /api/projects/{project_id}/tasks/
+```
+Request body:
+```json
+{
+  "title": "Task Title",
+  "description": "Task description",
+  "assigned_to": "username",
+  "due_date": "2024-12-31",
+  "status": "open"
+}
+```
+
+### Update Task
+```http
+PUT /api/projects/{project_id}/tasks/{id}/
+PATCH /api/projects/{project_id}/tasks/{id}/
+```
+
+### Delete Task
+```http
+DELETE /api/projects/{project_id}/tasks/{id}/
+```
+
+## Forums and Discussions
+
+### Forums
+
+#### List Forums
+```http
+GET /api/forums/
+```
+- Supports filtering by: category, status
+- Supports search on: title, description, category
+
+#### Create Forum
+```http
+POST /api/forums/
+```
+Request body:
+```json
+{
+  "title": "Forum Title",
+  "description": "Forum description",
+  "category": "General"
+}
+```
+
+#### Get Forum Statistics
+```http
+GET /api/forums/{id}/statistics/
+```
+
+#### Change Forum Status
+```http
+POST /api/forums/{id}/change_status/
+```
+Request body:
+```json
+{
+  "status": "archived"
+}
+```
+
+### Discussion Groups
+
+#### List Groups
+```http
+GET /api/forums/{forum_id}/groups/
+```
+- Supports filtering by: status, visibility
+- Supports search on: theme
+
+#### Create Group
+```http
+POST /api/forums/{forum_id}/groups/
+```
+Request body:
+```json
+{
+  "theme": "Group Theme",
+  "visibility": "public"
+}
+```
+
+#### Join Group
+```http
+POST /api/forums/{forum_id}/groups/{id}/join/
+```
+
+#### Leave Group
+```http
+POST /api/forums/{forum_id}/groups/{id}/leave/
+```
+
+#### List Group Members
+```http
+GET /api/forums/{forum_id}/groups/{id}/members/
+```
+
+### Discussions
+
+#### List Discussions
+```http
+GET /api/forums/{forum_id}/groups/{group_id}/discussions/
+```
+- Supports ordering by: created_at
+
+#### Create Discussion
+```http
+POST /api/forums/{forum_id}/groups/{group_id}/discussions/
+```
+Request body:
+```json
+{
+  "message": "Discussion message",
+  "receiver": null
+}
+```
+
+#### Reply to Discussion
+```http
+POST /api/forums/{forum_id}/groups/{group_id}/discussions/{id}/reply/
+```
+Request body:
+```json
+{
+  "message": "Reply message"
+}
+```
+
+#### Mark Discussion as Read
+```http
+POST /api/forums/{forum_id}/groups/{group_id}/discussions/{id}/mark_as_read/
+```
+
+#### Get Unread Discussions
+```http
+GET /api/forums/{forum_id}/groups/{group_id}/discussions/unread/
+```
+
+#### Get Discussion Thread
+```http
+GET /api/forums/{forum_id}/groups/{group_id}/discussions/{id}/thread/
+```
+
+## Error Responses
+The API returns standard HTTP status codes:
+- 200: Success
+- 201: Created
+- 204: No Content
+- 400: Bad Request
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not Found
+- 500: Internal Server Error
+
+Error response format:
+```json
+{
+  "error": "Error message description"
+}
+```
+
+## Permissions
+- `IsAuthenticated`: Required for all endpoints
+- `IsProjectOwner`: Required for adding/removing project members
+- `IsProjectMember`: Required for accessing project resources
+- `IsForumAdmin`: Required for forum administration
+- `IsGroupMember`: Required for accessing private group discussions
+- `CanManageDiscussion`: Required for modifying discussions

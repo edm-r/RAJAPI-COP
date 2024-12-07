@@ -37,7 +37,7 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=User.objects.all(),
         allow_null=True,
         required=False,
-        error_messages={'does_not_exist': 'Collaboratot don\'t exist.'}
+        error_messages={'does_not_exist': 'Collaborator don\'t exist.'}
     )
     assigned_to_details = UserSerializer(source='assigned_to', read_only=True)
     assigned_by_details = UserSerializer(source='assigned_by', read_only=True)
